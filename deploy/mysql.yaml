@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ddd-mysql
+  labels:
+    name: ddd-mysql
+spec:
+  ports:
+    - port: 3306
+      targetPort: 3306
+  clusterIP: None
+  selector:
+    role: ddd-mysql
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ddd-mysql
+spec:
+  serviceName: "mysql"
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        role: ddd-mysql
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+        - name: ddd-mysql
+          image: msapatterns/mysql:latest
+          imagePullPolicy: Always
+          args:
+            - "--ignore-db-dir=lost+found"
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              value: rootpassword
+            - name: MYSQL_USER
+              value: mysqluser
+            - name: MYSQL_PASSWORD
+              value: mysqlpw
+          volumeMounts:
+            - name: ddd-mysql-persistent-storage
+              mountPath: /var/lib/mysql
+  volumeClaimTemplates:
+    - metadata:
+        name: ddd-mysql-persistent-storage
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 1Gi
+  selector:
+    matchLabels:
+      role: ddd-mysql
+---

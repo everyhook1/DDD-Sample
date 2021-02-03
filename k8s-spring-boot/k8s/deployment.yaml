@@ -25,5 +25,10 @@ spec:
             httpGet:
               path: /actuator/health/liveness
               port: 8080
+          env:
+            - name: MYSQL_USER
+              value: mysqluser
+            - name: MYSQL_PASSWORD
+              value: mysqlpw
 
 status: { }
