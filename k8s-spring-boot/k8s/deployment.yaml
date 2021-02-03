@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: k8s-spring-boot
+  name: k8s-spring-boot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: k8s-spring-boot
+  strategy: { }
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: k8s-spring-boot
+    spec:
+      containers:
+        - image: k8s-spring-boot:1.0-SNAPSHOT
+          name: k8s-spring-boot
+          resources: { }
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+
+status: { }

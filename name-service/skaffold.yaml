@@ -1,0 +1,16 @@
+apiVersion: skaffold/v2beta5
+kind: Config
+metadata:
+  name: name-service
+build:
+  artifacts:
+    - image: demo:0.0.1-SNAPSHOT
+      buildpacks:
+        builder: gcr.io/paketo-buildpacks/builder:base-platform-api-0.3
+        dependencies:
+          paths:
+            - src
+            - pom.xml
+deploy:
+  kustomize:
+    paths: ["./kustomize/base"]
