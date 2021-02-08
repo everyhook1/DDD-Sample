@@ -1,0 +1,7 @@
+server:
+  port: 8678
+
+zk:
+  servers: localhost # soho-zk1,soho-zk2,soho-zk3,soho-zk4,soho-zk5
+  sleepMsBetweenRetries: 100
+  maxRetries: 3

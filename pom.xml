@@ -58,5 +58,7 @@
         <module>binlog-test</module>
         <module>k8s-spring-boot</module>
         <module>name-service</module>
+        <module>ddd-common</module>
+        <module>ddd-cdc</module>
     </modules>
 </project>

@@ -1,0 +1,8 @@
+{
+  "properties": [
+    {
+      "name": "zk.servers",
+      "type": "java.lang.String",
+      "description": "Description for zk.servers."
+  }
+] }
