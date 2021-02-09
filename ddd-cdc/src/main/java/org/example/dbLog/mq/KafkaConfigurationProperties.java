@@ -6,12 +6,14 @@
  */
 package org.example.dbLog.mq;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
  * @author liubin01
  */
 @Data
+@AllArgsConstructor
 public class KafkaConfigurationProperties {
 
     private String bootstrapServers;

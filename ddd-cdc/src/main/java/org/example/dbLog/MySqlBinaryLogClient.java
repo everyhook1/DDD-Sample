@@ -57,6 +57,7 @@ public class MySqlBinaryLogClient {
     private volatile boolean connected;
     protected volatile Optional<String> processingError = Optional.empty();
     private String binlogFilename;
+
     public MySqlBinaryLogClient() {
 
     }
@@ -96,7 +97,7 @@ public class MySqlBinaryLogClient {
         log.info("MySqlBinaryLogClient finished processing");
     }
 
-    private void handleProcessingFailException(InterruptedException e) {
+    private void handleProcessingFailException(Exception e) {
         log.error("Stopping due to exception", e);
         processingError = Optional.of(e.getMessage());
         stopCountDownLatch.countDown();
@@ -108,72 +109,72 @@ public class MySqlBinaryLogClient {
             return;
         }
         try {
-            handleBinlogEvent(event, binlogFileOffset);
+//            handleBinlogEvent(event, binlogFileOffset);
         } catch (Exception e) {
             handleRestart(e);
         }
     }
 
-    private void handleBinlogEvent(Event event, Optional<BinlogFileOffset> binlogFileOffset) {
-
-        switch (event.getHeader().getEventType()) {
-            case TABLE_MAP: {
-                TableMapEventData tableMapEvent = event.getData();
-
-                if (cdcMonitoringDao.isMonitoringTableChange(tableMapEvent.getDatabase(), tableMapEvent.getTable())) {
-                    cdcMonitoringTableId = Optional.of(tableMapEvent.getTableId());
-                    tableMapEventByTableId.put(tableMapEvent.getTableId(), tableMapEvent);
-                    break;
-                }
-
-                cdcMonitoringTableId = cdcMonitoringTableId.filter(id -> !id.equals(tableMapEvent.getTableId()));
-
-                SchemaAndTable schemaAndTable = new SchemaAndTable(tableMapEvent.getDatabase(), tableMapEvent.getTable());
-
-                boolean shouldHandleTable = binlogEntryHandlers
-                        .stream()
-                        .map(BinlogEntryHandler::getSchemaAndTable)
-                        .anyMatch(schemaAndTable::equals);
-
-                if (shouldHandleTable) {
-                    tableMapEventByTableId.put(tableMapEvent.getTableId(), tableMapEvent);
-                } else {
-                    tableMapEventByTableId.remove(tableMapEvent.getTableId());
-                }
-
-                dbLogMetrics.onBinlogEntryProcessed();
-
-                break;
-            }
-            case EXT_WRITE_ROWS: {
-                initProcessingInfo();
-                handleWriteRowsEvent(event, binlogFileOffset);
-                break;
-            }
-            case WRITE_ROWS: {
-                initProcessingInfo();
-                handleWriteRowsEvent(event, binlogFileOffset);
-                break;
-            }
-            case EXT_UPDATE_ROWS: {
-                handleUpdateRowsEvent(event);
-                break;
-            }
-            case UPDATE_ROWS: {
-                handleUpdateRowsEvent(event);
-                break;
-            }
-            case ROTATE: {
-                RotateEventData eventData = event.getData();
-                if (eventData != null) {
-                    binlogFilename = eventData.getBinlogFilename();
-                }
-                break;
-            }
-        }
-
-        saveEndingOffsetOfLastProcessedEvent(event);
-    }
+//    private void handleBinlogEvent(Event event, Optional<BinlogFileOffset> binlogFileOffset) {
+//
+//        switch (event.getHeader().getEventType()) {
+//            case TABLE_MAP: {
+//                TableMapEventData tableMapEvent = event.getData();
+//
+//                if (cdcMonitoringDao.isMonitoringTableChange(tableMapEvent.getDatabase(), tableMapEvent.getTable())) {
+//                    cdcMonitoringTableId = Optional.of(tableMapEvent.getTableId());
+//                    tableMapEventByTableId.put(tableMapEvent.getTableId(), tableMapEvent);
+//                    break;
+//                }
+//
+//                cdcMonitoringTableId = cdcMonitoringTableId.filter(id -> !id.equals(tableMapEvent.getTableId()));
+//
+//                SchemaAndTable schemaAndTable = new SchemaAndTable(tableMapEvent.getDatabase(), tableMapEvent.getTable());
+//
+//                boolean shouldHandleTable = binlogEntryHandlers
+//                        .stream()
+//                        .map(BinlogEntryHandler::getSchemaAndTable)
+//                        .anyMatch(schemaAndTable::equals);
+//
+//                if (shouldHandleTable) {
+//                    tableMapEventByTableId.put(tableMapEvent.getTableId(), tableMapEvent);
+//                } else {
+//                    tableMapEventByTableId.remove(tableMapEvent.getTableId());
+//                }
+//
+//                dbLogMetrics.onBinlogEntryProcessed();
+//
+//                break;
+//            }
+//            case EXT_WRITE_ROWS: {
+//                initProcessingInfo();
+//                handleWriteRowsEvent(event, binlogFileOffset);
+//                break;
+//            }
+//            case WRITE_ROWS: {
+//                initProcessingInfo();
+//                handleWriteRowsEvent(event, binlogFileOffset);
+//                break;
+//            }
+//            case EXT_UPDATE_ROWS: {
+//                handleUpdateRowsEvent(event);
+//                break;
+//            }
+//            case UPDATE_ROWS: {
+//                handleUpdateRowsEvent(event);
+//                break;
+//            }
+//            case ROTATE: {
+//                RotateEventData eventData = event.getData();
+//                if (eventData != null) {
+//                    binlogFilename = eventData.getBinlogFilename();
+//                }
+//                break;
+//            }
+//        }
+//
+//        saveEndingOffsetOfLastProcessedEvent(event);
+//    }
 
     private void connectWithRetriesOnFail() {
         for (int i = 1; ; i++) {
@@ -214,6 +215,7 @@ public class MySqlBinaryLogClient {
                 EventDeserializer.CompatibilityMode.DATE_AND_TIME_AS_LONG,
                 EventDeserializer.CompatibilityMode.CHAR_AND_BINARY_AS_BYTE_ARRAY
         );
+        return eventDeserializer;
     }
 
     private void handleRestart(Exception e) {
