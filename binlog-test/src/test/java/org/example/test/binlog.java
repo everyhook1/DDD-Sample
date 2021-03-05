@@ -50,8 +50,8 @@ public class binlog {
     }
 
     @Test
-    public void readWithOffset() throws IOException {
-        BinaryLogClient client = new BinaryLogClient("tutor-pub-book-editor-test", 3306, "tutor", "tutor123");
+    public void readWithOffset() throws IOException, InterruptedException {
+        BinaryLogClient client = new BinaryLogClient("localhost", 3306, "root", "rootpassword");
         EventDeserializer eventDeserializer = new EventDeserializer();
         eventDeserializer.setCompatibilityMode(
                 EventDeserializer.CompatibilityMode.DATE_AND_TIME_AS_LONG,
@@ -75,6 +75,9 @@ public class binlog {
             offsetKafkaStore.save(offset);
         });
         client.connect();
+        while (true) {
+            Thread.sleep(1000);
+        }
     }
 
 

@@ -13,13 +13,13 @@ import lombok.Data;
  */
 @Data
 public class EventuateSchema {
-    private Object eventuateDatabaseSchema;
+    private String eventuateDatabaseSchema;
 
-    public Object getEventuateDatabaseSchema() {
+    public String getEventuateDatabaseSchema() {
         return eventuateDatabaseSchema;
     }
 
-    public void setEventuateDatabaseSchema(Object eventuateDatabaseSchema) {
+    public void setEventuateDatabaseSchema(String eventuateDatabaseSchema) {
         this.eventuateDatabaseSchema = eventuateDatabaseSchema;
     }
 

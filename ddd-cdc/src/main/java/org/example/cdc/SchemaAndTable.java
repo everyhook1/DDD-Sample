@@ -6,18 +6,18 @@
  */
 package org.example.cdc;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * @author liubin01
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class SchemaAndTable {
 
     private String schema;
     private String tableName;
-
-    public SchemaAndTable(Object eventuateDatabaseSchema, String sourceTableName) {
-
-    }
 }

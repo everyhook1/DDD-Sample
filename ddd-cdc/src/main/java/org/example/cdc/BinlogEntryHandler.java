@@ -1,6 +1,8 @@
 package org.example.cdc;
 
 
+import org.example.binlog.BinlogEntry;
+
 import java.util.concurrent.CompletableFuture;
 
 public class BinlogEntryHandler<EVENT extends BinLogEvent> {

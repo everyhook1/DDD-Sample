@@ -6,6 +6,8 @@
  */
 package org.example.cdc;
 
+import org.example.binlog.BinlogEntry;
+
 /**
  * @author liubin01
  */
