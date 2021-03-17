@@ -40,12 +40,12 @@ public class PdfTest {
     @Test
     public void getPosition() throws IOException {
         //1.给定文件
-        String path = "/Users/liubin/Desktop/cache/fake/main.pdf";
+        String path = "/Users/liubin/Desktop/a.pdf";
         File pdfFile = new File(path);
         //2.定义一个byte数组，长度为文件的长度
         byte[] pdfData = FileUtils.readFileToByteArray(pdfFile);
         //3.指定关键字
-        String keyword = "2717593";
+        String keyword = "居右";
 
         //4.调用方法，给定关键字和文件
         List<float[]> positions = findKeywordPostions(pdfData, keyword);
@@ -62,14 +62,19 @@ public class PdfTest {
     }
 
     @Test
-    public void addStamper() throws DocumentException, IOException {
-        String path = "/Users/liubin/Desktop/cache/fake/main.pdf";
+    public void test1() {
+
+    }
+
+    public void addStamper(String in,String out) throws DocumentException, IOException {
+        String path = "/Users/liubin/Desktop/a.pdf";
         PdfReader reader = new PdfReader(path);
-        PdfStamper stamper = new PdfStamper(reader, new FileOutputStream("/Users/liubin/Desktop/a.pdf"));
+        PdfStamper stamper = new PdfStamper(reader, new FileOutputStream("/Users/liubin/Desktop/a1.pdf"));
         Font font = new Font();
-        font.setSize(4);
+        font.setSize(7);
         for (int i = 1; i <= reader.getNumberOfPages(); i++) {
-            ColumnText.showTextAligned(stamper.getUnderContent(i), Element.ALIGN_CENTER, new Phrase("hello world", font), 30, 297, 0);
+            ColumnText.showTextAligned(stamper.getUnderContent(i), Element.ALIGN_CENTER, new Phrase("hello world", font), 30, 700, 0);
+            ColumnText.showTextAligned(stamper.getUnderContent(i), Element.ALIGN_CENTER, new Phrase("hello world", font), 30, 707, 0);
         }
         stamper.close();
     }
@@ -211,9 +216,6 @@ public class PdfTest {
             List<TextRenderInfo> characterRenderInfos = renderInfo.getCharacterRenderInfos();
             for (TextRenderInfo textRenderInfo : characterRenderInfos) {
                 String word = textRenderInfo.getText();
-                if (word.length() > 1) {
-                    word = word.substring(word.length() - 1);
-                }
                 Float rectangle = textRenderInfo.getAscentLine().getBoundingRectange();
 
                 float x = (float) rectangle.getX();
@@ -222,6 +224,7 @@ public class PdfTest {
                 CharPosition charPosition = new CharPosition(pageNum, x, y);
                 charPositions.add(charPosition);
                 contentBuilder.append(word);
+
             }
         }
 

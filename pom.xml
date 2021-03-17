@@ -60,5 +60,6 @@
         <module>name-service</module>
         <module>ddd-common</module>
         <module>ddd-cdc</module>
+        <module>data-persist</module>
     </modules>
 </project>
