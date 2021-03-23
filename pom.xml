@@ -63,5 +63,6 @@
         <module>data-persist</module>
         <module>fsm</module>
         <module>name-service</module>
+        <module>saga</module>
     </modules>
 </project>

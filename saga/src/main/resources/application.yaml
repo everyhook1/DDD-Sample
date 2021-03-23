@@ -1,0 +1,19 @@
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui-custom.html
+saga:
+  monitor:
+    enabled: true
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/test
+    username: root
+    password: rootpassword
+  jpa:
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
