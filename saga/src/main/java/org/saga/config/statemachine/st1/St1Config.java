@@ -1,10 +1,10 @@
 /**
- * @(#)StateMachineConfig.java, 3月 23, 2021.
+ * @(#)St1Config.java, 3月 24, 2021.
  * <p>
  * Copyright 2021 fenbi.com. All rights reserved.
  * FENBI.COM PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
  */
-package org.saga.config;
+package org.saga.config.statemachine.st1;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -27,91 +27,66 @@ import java.util.EnumSet;
  * @author liubin01
  */
 @Configuration
-public class StateMachineConfig {
-
+public class St1Config {
     @Configuration
     public static class JpaPersisterConfig {
-        @Bean
-        public StateMachineRuntimePersister<States, Events, String> stateMachineRuntimePersister(
+        @Bean(name = "s1Persist")
+        public StateMachineRuntimePersister<St1States, St1Events, String> stateMachineRuntimePersister(
                 JpaStateMachineRepository jpaStateMachineRepository) {
             return new JpaPersistingStateMachineInterceptor<>(jpaStateMachineRepository);
         }
     }
 
     @Configuration
-    @EnableStateMachineFactory
-    public static class MachineConfig extends StateMachineConfigurerAdapter<States, Events> {
+    @EnableStateMachineFactory(name = "s1f")
+    public static class MachineConfig extends StateMachineConfigurerAdapter<St1States, St1Events> {
 
-        //tag::snippetD[]
         @Autowired
-        private StateMachineRuntimePersister<States, Events, String> stateMachineRuntimePersister;
+        private StateMachineRuntimePersister<St1States, St1Events, String> stateMachineRuntimePersister;
 
         @Override
-        public void configure(StateMachineConfigurationConfigurer<States, Events> config)
+        public void configure(StateMachineConfigurationConfigurer<St1States, St1Events> config)
                 throws Exception {
             config
                     .withPersistence()
                     .runtimePersister(stateMachineRuntimePersister);
         }
-//end::snippetD[]
 
         @Override
-        public void configure(StateMachineStateConfigurer<States, Events> states)
+        public void configure(StateMachineStateConfigurer<St1States, St1Events> states)
                 throws Exception {
             states
                     .withStates()
-                    .initial(States.S1)
-                    .states(EnumSet.allOf(States.class));
+                    .initial(St1States.ST1_S1)
+                    .states(EnumSet.allOf(St1States.class));
         }
 
         @Override
-        public void configure(StateMachineTransitionConfigurer<States, Events> transitions)
+        public void configure(StateMachineTransitionConfigurer<St1States, St1Events> transitions)
                 throws Exception {
             transitions
                     .withExternal()
-                    .source(States.S1).target(States.S2)
-                    .event(Events.E1)
+                    .source(St1States.ST1_S1).target(St1States.ST1_S2)
+                    .event(St1Events.ST1_E1)
                     .and()
                     .withExternal()
-                    .source(States.S2).target(States.S3)
-                    .event(Events.E2)
+                    .source(St1States.ST1_S2).target(St1States.ST1_S3)
+                    .event(St1Events.ST1_E2)
                     .and()
                     .withExternal()
-                    .source(States.S3).target(States.S4)
-                    .event(Events.E3)
-                    .and()
-                    .withExternal()
-                    .source(States.S4).target(States.S5)
-                    .event(Events.E4)
-                    .and()
-                    .withExternal()
-                    .source(States.S5).target(States.S6)
-                    .event(Events.E5)
-                    .and()
-                    .withExternal()
-                    .source(States.S6).target(States.S1)
-                    .event(Events.E6);
+                    .source(St1States.ST1_S3).target(St1States.ST1_S1)
+                    .event(St1Events.ST1_E3);
         }
     }
 
     @Configuration
     public static class ServiceConfig {
 
-        //tag::snippetE[]
-        @Bean
-        public StateMachineService<States, Events> stateMachineService(
-                StateMachineFactory<States, Events> stateMachineFactory,
-                StateMachineRuntimePersister<States, Events, String> stateMachineRuntimePersister) {
-            return new DefaultStateMachineService<States, Events>(stateMachineFactory, stateMachineRuntimePersister);
+        @Bean(name = "s1MachineService")
+        public StateMachineService<St1States, St1Events> stateMachineService(
+                StateMachineFactory<St1States, St1Events> stateMachineFactory,
+                StateMachineRuntimePersister<St1States, St1Events, String> stateMachineRuntimePersister) {
+            return new DefaultStateMachineService<>(stateMachineFactory, stateMachineRuntimePersister);
         }
-//end::snippetE[]
-    }
-
-    public enum States {
-        S1, S2, S3, S4, S5, S6;
-    }
-
-    public enum Events {
-        E1, E2, E3, E4, E5, E6;
     }
 }

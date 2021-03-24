@@ -7,27 +7,23 @@
 package org.saga.web.ctrl;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
-import org.saga.config.StateMachineConfig;
-import org.saga.dao.PersonRepository;
-import org.saga.entity.Person;
+import org.saga.config.statemachine.st1.St1Events;
+import org.saga.config.statemachine.st1.St1States;
+import org.saga.config.statemachine.st2.St2Events;
+import org.saga.config.statemachine.st2.St2States;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.statemachine.StateContext;
-import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.StateMachinePersist;
-import org.springframework.statemachine.listener.StateMachineListenerAdapter;
 import org.springframework.statemachine.service.StateMachineService;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
+import javax.annotation.PostConstruct;
 
 /**
  * @author liubin01
@@ -37,69 +33,55 @@ import java.util.List;
 public class HelloController {
 
     @Autowired
-    private PersonRepository personRepository;
-
-    private final StateMachineLogListener listener = new StateMachineLogListener();
+    private StateMachineService<St1States, St1Events> s1MachineService;
 
     @Autowired
-    private StateMachineService<StateMachineConfig.States, StateMachineConfig.Events> stateMachineService;
+    private StateMachinePersist<St1States, St1Events, String> s1Persist;
 
     @Autowired
-    private StateMachinePersist<StateMachineConfig.States, StateMachineConfig.Events, String> stateMachinePersist;
+    private StateMachineService<St2States, St2Events> s2MachineService;
 
+    @Autowired
+    private StateMachinePersist<St2States, St2Events, String> s2Persist;
 
-    @GetMapping
-    public Collection<Person> get() {
-        return personRepository.findAll();
+    private StateMachineService<?, ?> getMachine(int id) {
+        if (id == 1)
+            return s1MachineService;
+        return s2MachineService;
     }
 
-    @PostMapping
-    public Person save(@RequestBody Person person) {
-        return personRepository.save(person);
+    private StateMachinePersist<?, ?, String> getPersist(int id) {
+        if (id == 1)
+            return s1Persist;
+        else
+            return s2Persist;
     }
 
+    @GetMapping(value = "/{id:\\d+}/{machineId}")
+    public Object getMachine(@PathVariable int id, @PathVariable String machineId) throws Exception {
 
-    @GetMapping(value = "/machineId")
-    public Object getMachine(@RequestParam String machineId) throws Exception {
-        return stateMachinePersist.read(machineId);
+        Object obj = getPersist(id).read(machineId);
+        return obj;
     }
 
-    @PutMapping(value = "/machineId")
-    public Object sendEvent(@RequestParam String machineId, @RequestParam StateMachineConfig.Events event) throws Exception {
-        stateMachineService.acquireStateMachine(machineId).sendEvent(Mono.just(MessageBuilder.withPayload(event).build())).blockLast();
+    @PutMapping(value = "/{id:\\d+}/{machineId}")
+    public Object sendEvent(@PathVariable int id, @PathVariable String machineId, @RequestParam String event) {
+        if (id == 1)
+            s1MachineService.acquireStateMachine(machineId).sendEvent(Mono.just(MessageBuilder.withPayload(St1Events.valueOf(event)).build())).blockLast();
+        else
+            s2MachineService.acquireStateMachine(machineId).sendEvent(Mono.just(MessageBuilder.withPayload(St2Events.valueOf(event)).build())).blockLast();
         return "发送成功";
     }
 
-    @PostMapping(value = "/machineId")
-    public Object createMachine(@RequestParam String machineId) throws Exception {
-        StateMachine<StateMachineConfig.States, StateMachineConfig.Events> stateMachine = stateMachineService.acquireStateMachine(machineId, false);
-        stateMachine.startReactively();
-        return "存在";
+    @PostConstruct
+    public void justTest(){
+        s1MachineService.acquireStateMachine("s1m1").sendEvent(Mono.just(MessageBuilder.withPayload(St1Events.ST1_E1).build())).blockLast();
+        s2MachineService.acquireStateMachine("s2m1").sendEvent(Mono.just(MessageBuilder.withPayload(St2Events.ST2_E1).build())).blockLast();
     }
 
-    public class StateMachineLogListener extends StateMachineListenerAdapter<StateMachineConfig.States, StateMachineConfig.Events> {
-
-        private final LinkedList<String> messages = new LinkedList<String>();
-
-        public List<String> getMessages() {
-            return messages;
-        }
-
-        public void resetMessages() {
-            messages.clear();
-        }
-
-        @Override
-        public void stateContext(StateContext<StateMachineConfig.States, StateMachineConfig.Events> stateContext) {
-            if (stateContext.getStage() == StateContext.Stage.STATE_ENTRY) {
-                messages.addFirst("Enter " + stateContext.getTarget().getId());
-            } else if (stateContext.getStage() == StateContext.Stage.STATE_EXIT) {
-                messages.addFirst("Exit " + stateContext.getSource().getId());
-            } else if (stateContext.getStage() == StateContext.Stage.STATEMACHINE_START) {
-                messages.addLast("Machine started");
-            } else if (stateContext.getStage() == StateContext.Stage.STATEMACHINE_STOP) {
-                messages.addFirst("Machine stopped");
-            }
-        }
+    @PostMapping(value = "/{id:\\d+}/{machineId}")
+    public Object createMachine(@PathVariable int id, @PathVariable String machineId) {
+        getMachine(id).acquireStateMachine(machineId, false).startReactively();
+        return "存在";
     }
 }
