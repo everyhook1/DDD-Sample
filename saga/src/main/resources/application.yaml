@@ -3,9 +3,6 @@ springdoc:
     path: /api-docs
   swagger-ui:
     path: /swagger-ui-custom.html
-saga:
-  monitor:
-    enabled: true
 
 spring:
   datasource:
